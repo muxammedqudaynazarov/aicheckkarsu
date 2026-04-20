@@ -111,9 +111,9 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-5">
-                            <i class="fas fa-search fa-3x mb-3 text-light"></i><br>
-                            <h5 class="font-weight-light">Hech qanday ma'lumot topilmadi.</h5>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="fas fa-search fa-3x mb-3"></i><br>
+                            <h5 class="small">Hech qanday ma’lumot topilmadi.</h5>
                         </td>
                     </tr>
                 @endforelse

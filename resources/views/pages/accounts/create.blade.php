@@ -21,7 +21,7 @@
                                id="rpd_def" min="1" value="1" required>
                     </div>
                 </div>
-                <div class="col-md-12 mb-3">
+                <div class="col-md-12">
                     <label for="token" class="small mb-0">API token</label>
                     <textarea class="form-control" name="token" id="token" required></textarea>
                 </div>

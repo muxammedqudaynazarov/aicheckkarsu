@@ -35,7 +35,6 @@ class AccountController extends Controller
         if (!$user->can('accounts.create')) {
             return redirect()->route('accounts.index')->with('error', 'Sizda yangi token yaratish huquqi yo‘q.');
         }
-        // Faqat kerakli ustunlar olinmoqda (id va name) xotirani tejash uchun
         $users = User::where('pos', '!=', 'user')->get(['id', 'name']);
         return view('pages.accounts.create', compact('users'));
     }
@@ -69,16 +68,17 @@ class AccountController extends Controller
         ]);
         $token = $request->token;
         $model = $request->ai_model;
-        // timeout(10) qo'shildi! API qotib qolsa server osilib qolmaydi.
         $response = Http::timeout(10)->get("https://generativelanguage.googleapis.com/v1beta/models/{$model}?key={$token}");
         if ($response->failed()) {
             return back()->withInput()
                 ->withErrors(['token' => "Kiritilgan API token xato yoki ushbu model ({$model}) uchun yaroqsiz! Iltimos tekshirib qayta kiriting."]);
         }
+        $user_id = null;
+        if ($user->pos !== 'super_admin') $user_id = $user->id;
         Account::create([
             'email' => $request->email,
             'token' => $token,
-            'user_id' => auth()->id() ?? null,
+            'user_id' => $user_id,
             'rpd' => $request->rpd_def ?? 250,
             'rpd_default' => $request->rpd_def ?? 250,
             'model' => $model,
