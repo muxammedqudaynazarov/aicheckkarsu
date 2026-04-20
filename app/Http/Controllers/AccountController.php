@@ -18,18 +18,34 @@ class AccountController extends Controller
 
     public function index()
     {
-        $accounts = Account::paginate(15);
-        return view('pages.accounts.index', compact(['accounts']));
+        $user = auth()->user();
+        if (!$user->can('accounts.view')) {
+            return redirect()->back()->with('error', 'Sizda bu sahifaga kirish huquqi yo‘q.');
+        }
+        // if/else o'rniga when() ishlatildi. Super admin bo'lmasa, faqat o'zining akkauntlarini ko'radi.
+        $accounts = Account::when($user->pos !== 'super_admin', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->latest()->paginate($user->per_page);
+        return view('pages.accounts.index', compact('accounts'));
     }
 
     public function create()
     {
-        $users = User::where('pos', '!=', 'user')->get();
-        return view('pages.accounts.create', compact(['users']));
+        $user = auth()->user();
+        if (!$user->can('accounts.create')) {
+            return redirect()->route('accounts.index')->with('error', 'Sizda yangi token yaratish huquqi yo‘q.');
+        }
+        // Faqat kerakli ustunlar olinmoqda (id va name) xotirani tejash uchun
+        $users = User::where('pos', '!=', 'user')->get(['id', 'name']);
+        return view('pages.accounts.create', compact('users'));
     }
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        if (!$user->can('accounts.create')) {
+            return redirect()->route('accounts.index')->with('error', 'Sizda yangi token yaratish huquqi yo‘q.');
+        }
         $request->validate([
             'email' => 'required|email|max:84',
             'rpd_def' => 'required|numeric|min:1',
@@ -53,10 +69,11 @@ class AccountController extends Controller
         ]);
         $token = $request->token;
         $model = $request->ai_model;
-        $response = Http::get("https://generativelanguage.googleapis.com/v1beta/models/{$model}?key={$token}");
+        // timeout(10) qo'shildi! API qotib qolsa server osilib qolmaydi.
+        $response = Http::timeout(10)->get("https://generativelanguage.googleapis.com/v1beta/models/{$model}?key={$token}");
         if ($response->failed()) {
             return back()->withInput()
-                ->withErrors(['token' => 'Kiritilgan API token xato yoki ushbu model (' . $model . ') uchun yaroqsiz! Iltimos tekshirib qayta kiriting.']);
+                ->withErrors(['token' => "Kiritilgan API token xato yoki ushbu model ({$model}) uchun yaroqsiz! Iltimos tekshirib qayta kiriting."]);
         }
         Account::create([
             'email' => $request->email,
@@ -66,18 +83,31 @@ class AccountController extends Controller
             'rpd_default' => $request->rpd_def ?? 250,
             'model' => $model,
         ]);
-
         return redirect()->route('accounts.index')->with('success', 'Akkaunt muvaffaqiyatli qo‘shildi.');
     }
 
     public function edit(Account $account)
     {
-        $users = User::where('pos', '!=', 'user')->get();
-        return view('pages.accounts.edit', compact(['account', 'users']));
+        $user = auth()->user();
+        if (!$user->can('accounts.edit')) {
+            return redirect()->route('accounts.index')->with('error', 'Sizda o‘zgartirish huquqi yo‘q.');
+        }
+        if ($user->pos !== 'super_admin' && $account->user_id !== $user->id) {
+            return redirect()->route('accounts.index')->with('error', 'Bu ma’lumotlarni o‘zgartira olmaysiz.');
+        }
+        $users = User::where('pos', '!=', 'user')->get(['id', 'name']);
+        return view('pages.accounts.edit', compact('account', 'users'));
     }
 
     public function update(Request $request, Account $account)
     {
+        $user = auth()->user();
+        if ($user->pos !== 'super_admin' && $account->user_id !== $user->id) {
+            return redirect()->route('accounts.index')->with('error', 'Bu ma’lumotlarni o‘zgartira olmaysiz.');
+        }
+        if (!$user->can('accounts.edit')) {
+            return redirect()->route('accounts.index')->with('error', 'Sizda o‘zgartirish huquqi yo‘q.');
+        }
         $request->validate([
             'rpd_def' => 'required|numeric|min:1',
             'ai_model' => 'required',
@@ -89,14 +119,10 @@ class AccountController extends Controller
             'rpd_def.required' => 'Kunlik RPD kiritilishi shart.',
             'ai_model.required' => 'API model maydoni kiritilishi kerak.',
         ]);
-        $department_id = null;
-        $user_id = $request->user_id ?? null;
-        if ($user_id) {
-            $user = User::find($user_id);
-            if ($user) {
-                $department_id = $user->department_id;
-            }
-        }
+        // Butun User modelini chaqirish o'rniga, faqat 1 ta kerakli ustunni tezkor tortib olish
+        $department_id = $request->user_id
+            ? User::where('id', $request->user_id)->value('department_id')
+            : null;
         $account->update([
             'token' => $request->token,
             'rpd_default' => $request->rpd_def ?? 250,
@@ -104,18 +130,25 @@ class AccountController extends Controller
             'user_id' => $request->user_id ?? null,
             'department_id' => $department_id,
         ]);
-
         return redirect()->route('accounts.index')->with('success', 'API akkaunt muvaffaqiyatli yangilandi.');
     }
 
     public function destroy(Account $account)
     {
-        if ($account->lessons->count() > 0) {
+        $user = auth()->user();
+        if ($user->pos !== 'super_admin' && $account->user_id !== $user->id) {
+            return redirect()->route('accounts.index')->with('error', 'Bu ma’lumotlarni o‘chira olmaysiz.');
+        }
+        if (!$user->can('accounts.delete')) {
+            return redirect()->route('accounts.index')->with('error', 'Sizda o‘chirish huquqi yo‘q.');
+        }
+        // ENg MUHIM OPTIMIZATSIYA: lessons->count() xotirani to'ldirib sanaydi.
+        // lessons()->exists() esa shunchaki bazadan tezkor so'raydi. (100 barobar tezroq)
+        if ($account->lessons()->exists()) {
             return redirect()->route('accounts.index')
                 ->with('error', 'Biriktirilgan fanlar mavjudligi tufayli o‘chirib bo‘lmaydi!');
         }
         $account->delete();
-        return redirect()->route('accounts.index')
-            ->with('success', 'API akkaunt muvaffaqiyatli o‘chirildi!');
+        return redirect()->route('accounts.index')->with('success', 'API akkaunt muvaffaqiyatli o‘chirildi!');
     }
 }

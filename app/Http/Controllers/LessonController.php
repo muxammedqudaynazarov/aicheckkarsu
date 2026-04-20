@@ -15,28 +15,25 @@ use App\Models\Specialty;
 use App\Models\Student;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class LessonController extends Controller
 {
-    // app/Http/Controllers/LessonController.php
-
     public function index()
     {
-        $lessons = Lesson::with(['group', 'files'])->orderByDesc('id')->paginate(auth()->user()->per_page);
-        $accounts = Account::where(function ($query) {
-            $query->whereDate('reloaded_at', '!=', Carbon::today())
-                ->orWhereNull('reloaded_at');
-        })->get();
-
-        foreach ($accounts as $account) {
-            $account->update([
-                'rpd' => $account->rpd_default,
-                'reloaded_at' => \Carbon\Carbon::now(),
+        $user = auth()->user();
+        if (!$user->can('lessons.view')) return redirect()->back()->with('error', 'Sizda bu sahifaga kirish huquqi yo‘q.');
+        $lessons = Lesson::with(['group', 'files'])->latest('id')->paginate($user->per_page);
+        // Tsikl o'rniga bitta so'rov bilan barcha akkauntlarni yangilash (Optimizatsiya)
+        Account::whereDate('reloaded_at', '!=', Carbon::today())
+            ->orWhereNull('reloaded_at')
+            ->update([
+                'rpd' => DB::raw('rpd_default'),
+                'reloaded_at' => Carbon::now(),
             ]);
-        }
         return view('pages.lessons.index', compact('lessons'));
     }
 
@@ -52,22 +49,18 @@ class LessonController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->can('lessons.create')) return redirect()->back()->with('error', 'Sizda huquq yo‘q.');
         $departments = Department::where('structure', '11')->orderBy('name')->get();
-        return view('pages.lessons.create', compact(['departments']));
+        return view('pages.lessons.create', compact('departments'));
     }
 
     public function store(Request $request)
     {
+        if (!auth()->user()->can('lessons.create')) return redirect()->back()->with('error', 'Ruxsat yo‘q.');
         $request->validate([
             'group_id' => 'required|exists:groups,id',
             'name' => 'required|string|max:255',
             'files.*' => 'nullable|file|mimes:pdf|max:10240',
-        ], [
-            'group_id.required' => 'Guruh tanlanmagan.',
-            'group_id.exists' => 'Guruh topilmadi.',
-            'name.required' => 'Fan nomi kiritilmagan.',
-            'files.*.mimes' => 'Faqat PDF fayllarni yuklash mumkin.',
-            'files.*.max' => 'Fayl hajmi 10MB dan oshmasligi kerak.',
         ]);
         $examDate = Carbon::createFromFormat('d.m.Y', $request->exam_date)->format('Y-m-d 12:00:00');
         $meta = session('student_meta');
@@ -82,57 +75,53 @@ class LessonController extends Controller
         ]);
         $allStudentIds = Student::where('group_id', $lesson->group_id)->pluck('id');
         $uploadedFiles = $request->file('files', []);
+        $filesData = []; // Barcha fayllarni bittada saqlash uchun massiv
         foreach ($allStudentIds as $studentId) {
             if (isset($uploadedFiles[$studentId])) {
                 $file = $uploadedFiles[$studentId];
-                $extension = $file->getClientOriginalExtension();
-
                 $year_id = date('Y');
                 $faculty_id = $lesson->group->specialty->department_id ?? 'default_faculty';
                 $specialty_id = $lesson->group->specialty_id ?? 'default_specialty';
                 $group_id = $lesson->group_id ?? 'default_group';
-                $exam_date = date('dmY', strtotime($lesson->exam_date)) ?? date('dmY');
-                $fileName = "student_{$studentId}_" . time() . ".{$extension}";
-                $dir = "exams/{$year_id}/{$faculty_id}/{$specialty_id}/{$group_id}/lesson_{$lesson->id}_{$exam_date}";
-                $path = $file->storeAs(
-                    $dir,
-                    $fileName,
-                    'public',
-                );
-                //Storage::disk('google')->putFileAs($dir, $file, $fileName);
-                File::create([
+                $exam_date_format = date('dmY', strtotime($lesson->exam_date));
+                $fileName = "student_{$studentId}_" . time() . "." . $file->getClientOriginalExtension();
+                $dir = "exams/{$year_id}/{$faculty_id}/{$specialty_id}/{$group_id}/lesson_{$lesson->id}_{$exam_date_format}";
+                $path = $file->storeAs($dir, $fileName, 'public');
+                $filesData[] = [
                     'file_url' => $path,
                     'uuid' => uniqid(),
                     'student_id' => $studentId,
                     'lesson_id' => $lesson->id,
                     'participant' => '0',
                     'status' => '0',
-                ]);
-
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             } else {
-                File::create([
+                $filesData[] = [
                     'file_url' => null,
                     'uuid' => uniqid(),
                     'student_id' => $studentId,
                     'lesson_id' => $lesson->id,
                     'participant' => '1',
                     'status' => '2',
-                ]);
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             }
         }
-        return redirect()->route('lessons.index')->with('success', 'Fayllar muvaffaqiyatli yuklandi va qatnashmagan talabalar avtomatik belgilandi!');
+        File::insert($filesData); // Barcha ma'lumotlarni 1 ta so'rov bilan yozish (O'ta tez)
+        return redirect()->route('lessons.index')->with('success', 'Fayllar yuklandi!');
     }
 
     public function getSpecialties($departmentId)
     {
-        $specialties = Specialty::where('department_id', $departmentId)->orderBy('name')->get();
-        return response()->json($specialties);
+        return response()->json(Specialty::where('department_id', $departmentId)->orderBy('name')->get());
     }
 
     public function getGroups($specialtyId)
     {
-        $groups = Group::where('specialty_id', $specialtyId)->orderBy('name')->get();
-        return response()->json($groups);
+        return response()->json(Group::where('specialty_id', $specialtyId)->orderBy('name')->get());
     }
 
     public function syncStudents(Request $request)
@@ -145,40 +134,42 @@ class LessonController extends Controller
             ]);
             if ($response->successful()) {
                 $studentsData = $response->json();
-                $forOnce = true;
-                foreach ($studentsData['data']['items'] as $student) {
-                    if ($forOnce) {
-                        $firstStudent = $studentsData['data']['items'][0];
-
-                        $level = Level::firstOrCreate(['id' => $firstStudent['level']['code']], ['name' => $firstStudent['level']['name']]);
-                        $semester = Semester::firstOrCreate(['id' => $firstStudent['semester']['code']], ['name' => $firstStudent['semester']['name']]);
-                        $edu_year = EduYear::firstOrCreate(['id' => $firstStudent['educationYear']['code']], ['name' => $firstStudent['educationYear']['name']]);
-
-                        session(['student_meta' => [
-                            'level_id' => $level->id,
-                            'semester_id' => $semester->id,
-                            'edu_year_id' => $edu_year->id,
-                        ]]);
-                        $forOnce = false;
+                if (!empty($studentsData['data']['items'])) {
+                    $firstStudent = $studentsData['data']['items'][0];
+                    $level = Level::firstOrCreate(['id' => $firstStudent['level']['code']], ['name' => $firstStudent['level']['name']]);
+                    $semester = Semester::firstOrCreate(['id' => $firstStudent['semester']['code']], ['name' => $firstStudent['semester']['name']]);
+                    $edu_year = EduYear::firstOrCreate(['id' => $firstStudent['educationYear']['code']], ['name' => $firstStudent['educationYear']['name']]);
+                    session(['student_meta' => [
+                        'level_id' => $level->id,
+                        'semester_id' => $semester->id,
+                        'edu_year_id' => $edu_year->id,
+                    ]]);
+                    $studentsToInsert = [];
+                    foreach ($studentsData['data']['items'] as $student) {
+                        $studentsToInsert[] = [
+                            'id' => $student['id'],
+                            'name' => $student['full_name'],
+                            'student_id_number' => $student['student_id_number'],
+                            'group_id' => $groupId,
+                        ];
                     }
-                    Student::updateOrCreate([
-                        'id' => $student['id'],
-                    ], [
-                        'name' => $student['full_name'],
-                        'student_id_number' => $student['student_id_number'],
-                        'group_id' => $groupId,
-                    ]);
+                    // Bitta massivga yig'ib faqat 1 marta bazaga murojaat qilamiz (Upsert - bor bo'lsa yangilaydi, yo'q bo'lsa yaratadi)
+                    Student::upsert($studentsToInsert, ['id'], ['name', 'student_id_number', 'group_id']);
                 }
             }
         } catch (\Exception $e) {
             Log::error("HEMIS API xatosi: " . $e->getMessage());
         }
-        $students = Student::where('group_id', $groupId)->orderBy('name')->get();
-        return response()->json($students);
+        return response()->json(Student::where('group_id', $groupId)->orderBy('name')->get());
     }
 
     public function edit(Lesson $lesson)
     {
+        $user = auth()->user();
+        if (!$user->can('lessons.create')) {
+            return redirect()->back()->with('error', 'Sizda imtihonlarni o‘zgartirish huquqi yo‘q.');
+        }
+
         if ($lesson->status == '1') {
             return redirect()->route('lessons.index')
                 ->with('success', 'Tekshirilmoqda holatida fanni ko‘rib bo‘lmaydi.');
@@ -193,6 +184,11 @@ class LessonController extends Controller
 
     public function update(Request $request, Lesson $lesson)
     {
+        $user = auth()->user();
+        if (!$user->can('lessons.create')) {
+            return redirect()->back()->with('error', 'Sizda imtihonlarni o‘zgartirish huquqi yo‘q.');
+        }
+
         if ($lesson->status == '0') {
             $request->validate([
                 'files.*' => 'nullable|file|mimes:pdf|max:10240',
@@ -245,16 +241,17 @@ class LessonController extends Controller
 
     public function destroy(Lesson $lesson)
     {
-        $files = $lesson->files;
+        if (!auth()->user()->can('lessons.create')) return redirect()->back()->with('error', 'Sizda huquq yo‘q.');
         if ($lesson->status == '0') {
-            foreach ($files as $file) {
-                if ($file->file_url && Storage::disk('public')->exists($file->file_url)) {
-                    Storage::disk('public')->delete($file->file_url);
-                }
-                $file->delete();
+            // Fayllarni jismoniy o'chirish (Bittada massiv orqali o'chirish!)
+            $fileUrls = $lesson->files()->whereNotNull('file_url')->pluck('file_url')->toArray();
+            if (!empty($fileUrls)) {
+                Storage::disk('public')->delete($fileUrls);
             }
-            $lesson->delete();
-            return redirect()->route('lessons.index')->with('success', 'Imtihon va unga tegishli barcha fayllar muvaffaqiyatli o‘chirildi.');
-        } else return redirect()->route('lessons.index')->with('error', 'Imtihonni o‘chirib bo‘lmaydi.');
+            $lesson->files()->delete(); // DB dan bittada o'chirish
+            $lesson->delete(); // Darsni o'chirish
+            return redirect()->route('lessons.index')->with('success', 'Muvaffaqiyatli o‘chirildi.');
+        }
+        return redirect()->route('lessons.index')->with('error', 'Imtihonni o‘chirib bo‘lmaydi.');
     }
 }

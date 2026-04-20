@@ -7,6 +7,7 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HemisController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\ResultController;
@@ -25,7 +26,8 @@ Route::get('/login/user', [HemisController::class, 'user'])->name('auth.hemis');
 
 Route::prefix('home')->middleware(['auth'])->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
-    Route::get('/role', [HomeController::class, 'role']);
+    Route::get('/role/{role}', [HomeController::class, 'role']);
+    Route::get('/models', [LanguageController::class, 'models']);
     Route::post('/upload-scanned-file', [FileController::class, 'uploadScanned'])->name('scan.upload');
     Route::prefix('hemis')->group(function () {
         Route::resource('departments', DepartmentController::class)->only('index');

@@ -34,7 +34,7 @@
                         <span class="text-danger small">{{ $message }}</span>
                         @enderror
                     </div>
-                    <div class="col-md-12 mb-3">
+                    <div class="col-md-12">
                         <div class="mb-2">
                             <label for="token" class="small mb-0">API token</label>
                             <textarea class="form-control @error('token') is-invalid @enderror"
@@ -45,19 +45,22 @@
                             @enderror
                         </div>
                     </div>
-                    <div class="col-12">
-                        <div class="form-group">
-                            <label for="department" class="small mb-0">Tokenni foydalanuvchiga biriktirish</label>
-                            <select name="user_id" id="user_id" class="form-control" style="width: 100%;">
-                                <option @if(is_null($account->user_id)) selected @endif></option>
-                                @foreach($users as $user)
-                                    <option value="{{ $user->id }}" @if($user->id == $account->user_id) selected @endif>
-                                        {{ json_decode($user->name)->full_name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                    @if(auth()->user()->pos == 'super_admin')
+                        <div class="col-12 mt-3">
+                            <div class="form-group">
+                                <label for="department" class="small mb-0">Tokenni foydalanuvchiga biriktirish</label>
+                                <select name="user_id" id="user_id" class="form-control" style="width: 100%;">
+                                    <option @if(is_null($account->user_id)) selected @endif></option>
+                                    @foreach($users as $user)
+                                        <option value="{{ $user->id }}"
+                                                @if($user->id == $account->user_id) selected @endif>
+                                            {{ json_decode($user->name)->full_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
             </div>
             <div class="card-footer text-right">

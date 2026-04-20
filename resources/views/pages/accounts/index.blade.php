@@ -90,17 +90,23 @@
                             </div>
                         </td>
                         <td class="align-middle">
-                            <a href="{{ route('accounts.edit', $account->id) }}" class="btn btn-outline-primary btn-sm">
-                                <i class="fa fa-pen"></i>
-                            </a>
-                            <form action="{{ route('accounts.destroy', $account->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-outline-danger btn-sm"
-                                        onclick="return confirm('Ushbu akkauntni o‘chirishni xohlaysizmi?')">
-                                    <i class="fa fa-trash-alt"></i>
-                                </button>
-                            </form>
+                            @can('accounts.edit')
+                                <a href="{{ route('accounts.edit', $account->id) }}"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fa fa-pen"></i>
+                                </a>
+                            @endcan
+                            @can('accounts.delete')
+                                <form action="{{ route('accounts.destroy', $account->id) }}" method="POST"
+                                      class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            onclick="return confirm('Ushbu akkauntni o‘chirishni xohlaysizmi?')">
+                                        <i class="fa fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            @endcan
                         </td>
                     </tr>
                 @empty

@@ -42,14 +42,14 @@ class DepartmentSeeder extends Seeder
 
         Account::create([
             'email' => 'm.qudaynazarov@gmail.com',
-            'token' => 'AIzaSyCLlKx9O2AZ8y6QeREm0OcbDO9ZJByhf20',
+            'token' => '###',
             'model' => 'gemini-3.1-pro-preview',
             'rpd' => 250,
             'rpd_default' => 250,
         ]);
         Account::create([
             'email' => 'm.qudaynazarov@gmail.com',
-            'token' => 'AIzaSyCLlKx9O2AZ8y6QeREm0OcbDO9ZJByhf20',
+            'token' => '###',
             'model' => 'gemini-2.5-pro',
             'rpd' => 1000,
             'rpd_default' => 1000,
