@@ -37,7 +37,7 @@ class GroupController extends Controller
             $query->where('name', 'like', '%' . $request->search_name . '%');
         }
 
-        $groups = $query->orderBy('name')->paginate(15)->withQueryString();
+        $groups = $query->orderBy('name')->paginate(auth()->user()->per_page)->withQueryString();
 
         return view('pages.hemis.groups', compact('groups', 'departments', 'specialties'));
     }

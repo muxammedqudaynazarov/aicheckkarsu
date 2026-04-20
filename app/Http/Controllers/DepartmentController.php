@@ -16,7 +16,7 @@ class DepartmentController extends Controller
                 'groups.lessons'
             ])
             ->orderBy('name')
-            ->paginate(15);
+            ->paginate(auth()->user()->per_page);
 
         return view('pages.hemis.departments', compact(['departments']));
     }

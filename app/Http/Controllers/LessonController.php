@@ -25,7 +25,7 @@ class LessonController extends Controller
 
     public function index()
     {
-        $lessons = Lesson::with(['group', 'files'])->orderByDesc('id')->paginate(15);
+        $lessons = Lesson::with(['group', 'files'])->orderByDesc('id')->paginate(auth()->user()->per_page);
         $accounts = Account::where(function ($query) {
             $query->whereDate('reloaded_at', '!=', Carbon::today())
                 ->orWhereNull('reloaded_at');

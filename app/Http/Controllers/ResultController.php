@@ -35,7 +35,7 @@ class ResultController extends Controller
                 $q->where('specialty_id', $request->specialty_id);
             });
         }
-        $lessons = $query->orderByDesc('id')->paginate(15)->withQueryString();
+        $lessons = $query->orderByDesc('id')->paginate(auth()->user()->per_page)->withQueryString();
         return view('pages.results.index', compact(['lessons', 'departments', 'specialties']));
     }
 

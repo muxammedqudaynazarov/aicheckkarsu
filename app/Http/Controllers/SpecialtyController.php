@@ -24,7 +24,7 @@ class SpecialtyController extends Controller
             $query->where('name', 'like', '%' . $request->search_name . '%');
         }
 
-        $specialties = $query->orderBy('name')->paginate(15)->withQueryString();
+        $specialties = $query->orderBy('name')->paginate(auth()->user()->per_page)->withQueryString();
 
         return view('pages.hemis.specialties', compact('specialties', 'departments'));
     }

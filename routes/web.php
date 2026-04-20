@@ -26,7 +26,6 @@ Route::get('/login/user', [HemisController::class, 'user'])->name('auth.hemis');
 Route::prefix('home')->middleware(['auth'])->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/role', [HomeController::class, 'role']);
-    Route::get('/scan', [FileController::class, 'scan']);
     Route::get('/pusher', function () {
         return view('pusher');
     });

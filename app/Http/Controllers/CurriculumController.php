@@ -24,7 +24,7 @@ class CurriculumController extends Controller
             $query->where('name', 'like', '%' . $request->search_name . '%');
         }
 
-        $curricula = $query->orderBy('name')->paginate(15)->withQueryString();
+        $curricula = $query->orderBy('name')->paginate(auth()->user()->per_page)->withQueryString();
 
         return view('pages.hemis.curricula', compact('curricula', 'departments'));
     }
