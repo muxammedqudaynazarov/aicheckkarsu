@@ -26,9 +26,6 @@ Route::get('/login/user', [HemisController::class, 'user'])->name('auth.hemis');
 Route::prefix('home')->middleware(['auth'])->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/role', [HomeController::class, 'role']);
-    Route::get('/pusher', function () {
-        return view('pusher');
-    });
     Route::post('/upload-scanned-file', [FileController::class, 'uploadScanned'])->name('scan.upload');
     Route::prefix('hemis')->group(function () {
         Route::resource('departments', DepartmentController::class)->only('index');
