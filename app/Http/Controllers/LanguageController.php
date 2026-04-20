@@ -12,7 +12,9 @@ class LanguageController extends Controller
         $response = Http::get("https://generativelanguage.googleapis.com/v1beta/models?key=" . env('GEMINI_API_KEY'));
         if ($response->successful()) {
             $models = $response->json();
-            dd($models);
+            foreach ($models['models'] as $model) {
+                echo $model["name"] . "<br>";
+            }
         } else {
             dd("Xatolik yuz berdi: " . $response->status());
         }

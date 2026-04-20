@@ -43,9 +43,9 @@ class DepartmentSeeder extends Seeder
         Account::create([
             'email' => 'm.qudaynazarov@gmail.com',
             'token' => '###',
-            'model' => 'gemini-3.1-pro-preview',
-            'rpd' => 250,
-            'rpd_default' => 250,
+            'model' => 'gemini-3-pro-preview',
+            'rpd' => 1500,
+            'rpd_default' => 1500,
         ]);
         Account::create([
             'email' => 'm.qudaynazarov@gmail.com',
@@ -53,6 +53,13 @@ class DepartmentSeeder extends Seeder
             'model' => 'gemini-2.5-pro',
             'rpd' => 1000,
             'rpd_default' => 1000,
+        ]);
+        Account::create([
+            'email' => 'm.qudaynazarov@gmail.com',
+            'token' => '###',
+            'model' => 'gemini-3.1-pro-preview',
+            'rpd' => 250,
+            'rpd_default' => 250,
         ]);
 
         Option::create([
