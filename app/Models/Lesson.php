@@ -12,6 +12,7 @@ class Lesson extends Model
         'name',
         'uuid',
         'group_id',
+        'user_id',
         'level_id',
         'semester_id',
         'edu_year_id',
@@ -39,6 +40,11 @@ class Lesson extends Model
         return $this->hasOne(Level::class, 'id', 'level_id');
     }
 
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class, 'id', 'user_id');
+    }
+
     public function semester(): HasOne
     {
         return $this->hasOne(Semester::class, 'id', 'semester_id');
@@ -48,6 +54,7 @@ class Lesson extends Model
     {
         return $this->hasOne(EduYear::class, 'id', 'edu_year_id');
     }
+
     public function canBeChecked(): bool
     {
         // Faqat tekshirilishi kerak bo'lgan va qatnashgan talabalar fayllarini sanaymiz

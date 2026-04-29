@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->string('uuid');
             $table->foreignId('group_id')->constrained('groups')->cascadeOnDelete();
             $table->foreignId('level_id')->nullable()->constrained('levels')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('semester_id')->nullable()->constrained('semesters')->cascadeOnDelete();
             $table->foreignId('edu_year_id')->nullable()->constrained('edu_years')->cascadeOnDelete();
             $table->foreignId('account_id')->nullable()->constrained('accounts')->cascadeOnDelete();

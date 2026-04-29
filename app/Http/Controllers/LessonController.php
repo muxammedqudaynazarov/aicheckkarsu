@@ -25,24 +25,42 @@ class LessonController extends Controller
     public function index()
     {
         $user = auth()->user();
-        if (!$user->can('lessons.view')) return redirect()->back()->with('error', 'Sizda bu sahifaga kirish huquqi yo‘q.');
-        $lessons = Lesson::with(['group', 'files'])->latest('id')->paginate($user->per_page);
-        // Tsikl o'rniga bitta so'rov bilan barcha akkauntlarni yangilash (Optimizatsiya)
-        Account::whereDate('reloaded_at', '!=', Carbon::today())
-            ->orWhereNull('reloaded_at')
-            ->update([
-                'rpd' => DB::raw('rpd_default'),
-                'reloaded_at' => Carbon::now(),
-            ]);
-        return view('pages.lessons.index', compact('lessons'));
+        if (!$user->can('lessons.view')) {
+            return redirect()->back()->with('error', 'Sizda bu sahifaga kirish huquqi yo‘q.');
+        }
+        Account::whereDate('reloaded_at', '!=', Carbon::today())->orWhereNull('reloaded_at')
+            ->update(['rpd' => DB::raw('rpd_default'), 'reloaded_at' => Carbon::now()]);
+        $availableRpd = Account::where('status', '0')
+            ->when($user->pos === 'moder', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->sum('rpd');
+        $lessons = Lesson::with(['group'])
+            ->when(!in_array($user->pos, ['moder', 'admin', 'super_admin']), function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->withCount(['files as pending_files_count' => function ($query) {
+                $query->where('participant', '0')->where('status', '0');
+            }])->latest('id')->paginate($user->per_page);
+        return view('pages.lessons.index', compact(['lessons', 'availableRpd']));
     }
 
     public function startChecking(Lesson $lesson)
     {
+        $user = auth()->user();
         if ($lesson->status === '0') {
+            $pendingFiles = $lesson->files()->where('participant', '0')->where('status', '0')->count();
+            if ($pendingFiles === 0) {
+                return back()->with('error', 'Bu imtihonda tekshirilishi kerak bo‘lgan fayllar mavjud emas.');
+            }
+            $availableRpd = Account::where('status', '0')
+                ->when($user->pos === 'moder', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })->sum('rpd');
+            if ($availableRpd < $pendingFiles) {
+                return back()->with('error', "API akkauntlarda yetarli limit mavjud emas! Talab etiladi: {$pendingFiles} ta, Mavjud limit: {$availableRpd} ta.");
+            }
             $lesson->update(['status' => '1']);
-            CheckLessonFiles::dispatch($lesson);
-            return back()->with('success', 'Imtihon qog‘ozlari tekshirish uchun navbatga qo‘yildi (AI). Bu jarayon biroz vaqt olishi mumkin.');
+            CheckLessonFiles::dispatch($lesson, $user);
+            return back()->with('success', 'Imtihon qog‘ozlari tekshirish uchun navbatga qo‘yildi (AI).');
         }
         return back()->with('error', 'Bu imtihon allaqachon tekshirilmoqda yoki yakunlangan.');
     }
@@ -68,6 +86,7 @@ class LessonController extends Controller
             'name' => $request->name,
             'uuid' => uniqid(),
             'group_id' => $request->group_id,
+            'user_id' => auth()->id(),
             'level_id' => $meta['level_id'],
             'semester_id' => $meta['semester_id'],
             'edu_year_id' => $meta['edu_year_id'],

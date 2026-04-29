@@ -164,28 +164,29 @@
                             let tbody = '';
                             if (students.length > 0) {
                                 students.forEach(function (student, index) {
-                                    tbody += `
-                                        <tr>
-                                            <td class="align-middle text-center">${index + 1}</td>
-                                            <td class="align-middle">${student.name}</td>
-                                            <td class="text-right">
-                                                <div class="d-flex align-items-center upload-wrapper justify-content-end" id="wrapper_${student.id}">
-                                                    <label class="btn btn-outline-primary btn-sm mb-0 mr-2" for="file_${student.id}" id="label_${student.id}">
-                                                        <i class="fas fa-file-pdf"></i> PDF tanlash
-                                                    </label>
-                                                    <input type="file"
-                                                           name="files[${student.id}]"
-                                                           id="file_${student.id}"
-                                                           class="d-none custom-file-input-pdf"
-                                                           accept=".pdf"
-                                                           data-student-id="${student.id}">
-                                                    <span class="text-muted file-name-text text-left" id="filename_${student.id}" style="font-size: 0.9rem; min-width: 150px;">
-                                                        Fayl tanlanmadi
-                                                    </span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    `;
+                                    tbody += `<tr>
+                                        <td class="align-middle text-center">${index + 1}</td>
+                                        <td class="align-middle font-weight-bold">${student.name}</td>
+                                        <td class="align-middle">
+                                            <div class="d-flex align-items-center justify-content-end">
+
+                                                <label class="btn btn-outline-primary btn-sm mb-0 mr-3 shadow-sm" for="file_${student.id}" id="label_${student.id}" style="width: 130px;">
+                                                    <i class="fas fa-file-pdf"></i> PDF tanlash
+                                                </label>
+
+                                                <input type="file"
+                                                       name="files[${student.id}]"
+                                                       id="file_${student.id}"
+                                                       class="d-none custom-file-input-pdf"
+                                                       accept=".pdf"
+                                                       data-student-id="${student.id}">
+
+                                                <span class="text-muted text-left text-truncate" id="filename_${student.id}" style="width: 200px; font-size: 0.9rem;" title="Fayl tanlanmadi">
+                                                    Fayl tanlanmadi
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>`;
                                 });
                                 $('#save-btn').prop('disabled', false); // Yuklash tugmasini yoqish
                                 toastr.success(students.length + ' ta talaba muvaffaqiyatli sinxronlandi!');
@@ -214,11 +215,23 @@
                 const studentId = $(this).data('student-id');
                 const fileNameSpan = $('#filename_' + studentId);
                 const labelBtn = $('#label_' + studentId);
+
                 if (this.files && this.files.length > 0) {
-                    fileNameSpan.text(this.files[0].name).removeClass('text-muted').addClass('text-success font-weight-bold');
+                    let fullFileName = this.files[0].name;
+
+                    // Matnni yozish va hover qilinganda to'liq nomini ko'rsatish uchun title qo'shish
+                    fileNameSpan.text(fullFileName)
+                        .attr('title', fullFileName)
+                        .removeClass('text-muted')
+                        .addClass('text-success font-weight-bold');
+
                     labelBtn.removeClass('btn-outline-primary').addClass('btn-primary');
                 } else {
-                    fileNameSpan.text('Fayl tanlanmadi').removeClass('text-success font-weight-bold').addClass('text-muted');
+                    fileNameSpan.text('Fayl tanlanmadi')
+                        .attr('title', 'Fayl tanlanmadi')
+                        .removeClass('text-success font-weight-bold')
+                        .addClass('text-muted');
+
                     labelBtn.removeClass('btn-primary').addClass('btn-outline-primary');
                 }
             });

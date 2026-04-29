@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('content')
-    <form action="{{ route('accounts.update', $user->id) }}" method="POST" autocomplete="off">
+    <form action="{{ route('users.update', $user->id) }}" method="POST" autocomplete="off">
         @csrf
         @method('PUT')
         <div class="card card-primary card-outline">
@@ -63,7 +63,7 @@
                                     @if($user->pos == 'super_admin') disabled @endif>
                                 <option disabled></option>
                                 <option value="user" @if($user->pos == 'user') selected @endif>Foydalanuvchi</option>
-                                <option value="creator" @if($user->pos == 'creator') selected @endif>Yuklovchi</option>
+                                <option value="uploader" @if($user->pos == 'uploader') selected @endif>Yuklovchi</option>
                                 <option value="moder" @if($user->pos == 'moder') selected @endif>Tekshiruvchi</option>
                                 <option value="admin" @if($user->pos == 'admin') selected @endif>Administrator</option>
                                 @if($user->pos == 'super_admin')

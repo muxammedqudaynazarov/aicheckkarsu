@@ -29,6 +29,7 @@
                         <tr>
                             <th>#</th>
                             <th style="text-align: start">Fan nomi</th>
+                            <th>Muallif</th>
                             <th>Talabalar soni</th>
                             <th>Fayllar soni</th>
                             <th>Imtihon sanasi</th>
@@ -56,6 +57,7 @@
                                         </div>
                                     @endif
                                 </td>
+                                <td class="align-middle">{{ json_decode($lesson->user->name)->short_name }}</td>
                                 <td class="align-middle">{{ $lesson->group->students->count() ?? 0}}</td>
                                 <td class="align-middle">
                                     {{ $lesson->files->where('participant', '0')->count() ?? 0 }}
@@ -67,31 +69,36 @@
                                         <span class="badge bg-secondary">Yangi yaratilgan</span>
                                     </td>
                                     <td class="text-center align-middle">
-                                        @if($lesson->canBeChecked())
-                                            <form action="{{ route('lessons.start_checking', $lesson->id) }}"
-                                                  method="POST" class="d-inline"
-                                                  onsubmit="return confirm('Haqiqatan ham fayllarni tekshiruvga yubormoqchimisiz?');">
-                                                @csrf
-                                                <button type="submit" class="btn btn-primary btn-sm"
-                                                        title="AI yordamida tekshirish">
+                                        @can('lessons.checking')
+                                            @if($availableRpd)
+                                                <form action="{{ route('lessons.start_checking', $lesson->id) }}"
+                                                      method="POST" class="d-inline"
+                                                      onsubmit="return confirm('Haqiqatan ham fayllarni tekshiruvga yubormoqchimisiz?');">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-primary btn-sm"
+                                                            title="AI yordamida tekshirish">
+                                                        Tekshirish
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <button type="button" class="btn btn-secondary btn-sm disabled"
+                                                        title="Bo‘sh API akkaunt yo‘q yoki Kunlik RPD limiti yetarli emas">
                                                     Tekshirish
                                                 </button>
+                                            @endif
+                                        @endcan
+                                        @can('lessons.delete')
+                                            <form action="{{ route('lessons.destroy', $lesson->id) }}"
+                                                  method="POST" class="d-inline"
+                                                  onsubmit="return confirm('Diqqat! Ushbu imtihon va unga tegishli barcha fayllar butunlay o‘chib ketadi. Rozimisiz?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    O‘chirish
+                                                </button>
                                             </form>
-                                        @else
-                                            <button type="button" class="btn btn-secondary btn-sm disabled"
-                                                    title="Bo‘sh API akkaunt yo‘q yoki Kunlik RPD limiti yetarli emas">
-                                                Tekshirish
-                                            </button>
-                                        @endif
-                                        <form action="{{ route('lessons.destroy', $lesson->id) }}"
-                                              method="POST" class="d-inline"
-                                              onsubmit="return confirm('Diqqat! Ushbu imtihon va unga tegishli barcha PDF fayllar butunlay o‘chib ketadi. Rozimisiz?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                O‘chirish
-                                            </button>
-                                        </form>
+                                        @endcan
+
                                     </td>
 
                                 @elseif($lesson->status === '1')

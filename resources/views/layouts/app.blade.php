@@ -159,8 +159,8 @@
                             </a>
                         </li>
                     @endcan
+                    <li class="nav-header mt-2" style="font-size: 11px">TIZIM SOZLAMALARI</li>
                     @can('users.view')
-                        <li class="nav-header mt-2" style="font-size: 11px">TIZIM SOZLAMALARI</li>
                         <li class="nav-item">
                             <a href="{{ route('users.index') }}"
                                class="nav-link {{ request()->is('home/users*') ? 'active': '' }}">
