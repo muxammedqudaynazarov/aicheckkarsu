@@ -27,8 +27,8 @@ Route::get('/login/user', [HemisController::class, 'user'])->name('auth.hemis');
 Route::prefix('home')->middleware(['auth'])->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/role/{role}', [HomeController::class, 'role']);
-    Route::get('/models', [LanguageController::class, 'models']);
-    Route::post('/upload-scanned-file', [FileController::class, 'uploadScanned'])->name('scan.upload');
+    //Route::get('/models', [LanguageController::class, 'models']);
+    //Route::post('/upload-scanned-file', [FileController::class, 'uploadScanned'])->name('scan.upload');
     Route::prefix('hemis')->group(function () {
         Route::resource('departments', DepartmentController::class)->only('index');
         Route::resource('curricula', CurriculumController::class)->only('index');
@@ -51,7 +51,6 @@ Route::prefix('home')->middleware(['auth'])->group(function () {
     Route::get('/event', [AccountController::class, 'event']);
     Route::post('/api/groups/sync-students', [LessonController::class, 'syncStudents'])->name('api.sync_students');
     Route::post('/lessons/{lesson}/start-checking', [LessonController::class, 'startChecking'])->name('lessons.start_checking');
-
 });
 
 Route::get('/certificate/{lesson}/{student}/download', [ResultController::class, 'downloadCertificate'])->name('lessons.certificate');
