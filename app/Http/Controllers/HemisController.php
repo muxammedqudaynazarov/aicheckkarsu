@@ -16,7 +16,7 @@ class HemisController extends Controller
         return new GenericProvider([
             'clientId' => env('HEMIS_CLIENT_ID'),
             'clientSecret' => env('HEMIS_CLIENT_SECRET'),
-            'redirectUri' => 'http://127.0.0.1:8000/login/user',
+            'redirectUri' => env('HEMIS_REDIRECT_URI'),
             'urlAuthorize' => 'https://hemis.karsu.uz/oauth/authorize',
             'urlAccessToken' => 'https://hemis.karsu.uz/oauth/access-token',
             'urlResourceOwnerDetails' => 'https://hemis.karsu.uz/oauth/api/user?fields=id,uuid,employee_id_number,name,firstname,surname,patronymic,birth_date,university_id,phone'
