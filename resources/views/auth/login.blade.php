@@ -1,9 +1,38 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tizimga kirish - AIcheck KarSU</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Sun’iy intellektga asoslangan talabalar yozma ishlarini tekshirish va bilimini baholash tizimi |
+        RegOFIS.UZ</title>
+    <meta name="description"
+          content="Qoraqalpoq davlat universiteti tomonidan ishlab chiqilgan talabalarining yozma ishlari va imtihon javoblarini Sun’iy intellekt (AI) yordamida avtomatik tekshirish va chuqur tahlil qilish platformasi">
+    <meta name="keywords"
+          content="AIcheck, KarSU, Qoraqalpoq davlat universiteti, sun’iy intellekt, imtihon tekshirish, talabalar bilimi, avtomatlashtirilgan tizim, AI ta’lim, QQDU, QMU, yozma ish tekshirish, Qudaynazarov Muxammed">
+    <meta name="author" content="Qoraqalpoq davlat universiteti">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ url()->current() }}">
+    <meta name="google-site-verification" content="uY4c-9ZVaqhKCGu1Vy3znBxQzV-vc_HoHUalbCkRyCI" />
+    <meta name="yandex-verification" content="e8c44c5faf4ec232" />
+    <meta property="og:site_name" content="AIcheck.RegOFIS.UZ">
+    <meta property="og:title"
+          content="AICheck KarSU - Sun’iy intellektga asoslangan talabalar yozma ishlarini tekshirish va bilimini baholash tizimi">
+    <meta property="og:description"
+          content="Sun’iy intellektga asoslangan talabalar yozma ishlarini tekshirish va bilimini baholash tizimi">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ asset('dist/img/og-image.jpg') }}">
+    <meta property="og:locale" content="uz_UZ">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="AIcheck - KarSU">
+    <meta name="twitter:description"
+          content="Sun’iy intellektga asoslangan talabalar yozma ishlarini tekshirish va bilimini baholash tizimi">
+    <meta name="twitter:image" content="{{ asset('dist/img/og-image.jpg') }}">
+    <meta name="theme-color" content="#0056b3">
+    <link rel="icon" type="image/png" href="{{ asset('dist/img/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('dist/img/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
