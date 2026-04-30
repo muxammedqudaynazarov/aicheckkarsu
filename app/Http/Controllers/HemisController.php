@@ -53,7 +53,7 @@ class HemisController extends Controller
             //dd($user_data);
             $existingUser = User::find($user_data['employee_id']);
             $roleToAssign = $existingUser ? $existingUser->pos : 'user';
-            $user = User::updateOrCreate([
+            $user = User::firstOrCreate([
                 'id' => $user_data['employee_id'],
             ], [
                 'name' => json_encode([
