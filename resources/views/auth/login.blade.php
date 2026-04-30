@@ -22,7 +22,7 @@
           content="Sun’iy intellektga asoslangan talabalar yozma ishlarini tekshirish va bilimini baholash tizimi">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:image" content="{{ asset('dist/img/og-image.jpg') }}">
+    <meta property="og:image" content="{{ asset('dist/img/og_image.jpg') }}">
     <meta property="og:locale" content="uz_UZ">
 
     <meta name="twitter:card" content="summary_large_image">
