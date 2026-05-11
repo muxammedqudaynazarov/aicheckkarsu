@@ -78,13 +78,13 @@ class LessonController extends Controller
         $request->validate([
             'group_id' => 'required|exists:groups,id',
             'name' => 'required|string|max:255',
-            'files.*' => 'nullable|file|mimes:pdf|max:10240',
+            'files.*' => 'nullable|file|mimes:pdf|max:102400',
         ]);
         $examDate = Carbon::createFromFormat('d.m.Y', $request->exam_date)->format('Y-m-d 12:00:00');
         $meta = session('student_meta');
         $lesson = Lesson::create([
             'name' => $request->name,
-            'uuid' => uniqid(),
+            'uuid' => (string) str()->uuid(),
             'group_id' => $request->group_id,
             'user_id' => auth()->id(),
             'level_id' => $meta['level_id'],
@@ -94,7 +94,7 @@ class LessonController extends Controller
         ]);
         $allStudentIds = Student::where('group_id', $lesson->group_id)->pluck('id');
         $uploadedFiles = $request->file('files', []);
-        $filesData = []; // Barcha fayllarni bittada saqlash uchun massiv
+        $filesData = [];
         foreach ($allStudentIds as $studentId) {
             if (isset($uploadedFiles[$studentId])) {
                 $file = $uploadedFiles[$studentId];

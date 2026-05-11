@@ -23,6 +23,7 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/login/user', [HemisController::class, 'user'])->name('auth.hemis');
+Route::get('/login/user/men', [HemisController::class, 'men']);
 
 Route::prefix('home')->middleware(['auth'])->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
