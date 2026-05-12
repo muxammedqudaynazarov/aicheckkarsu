@@ -38,8 +38,13 @@
                             <option value="">Guruhlar ro‘yxati</option>
                         </select>
                     </div>
-                    <div class="col-md-9 mb-3">
-                        <input type="text" class="form-control" name="name" id="name" required placeholder="Fan nomi">
+                    <div class="col-md-9 mb-3 position-relative">
+                        <input type="text" class="form-control" name="name" id="name" required placeholder="Fan nomi"
+                               autocomplete="off">
+
+                        <div id="name-suggestions" class="list-group position-absolute w-100"
+                             style="z-index: 1000; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-height: 250px; overflow-y: auto;">
+                        </div>
                     </div>
                     <div class="col-md-3 mb-3">
                         <div class="input-group date" id="reservationdatetime" data-target-input="nearest">
@@ -109,6 +114,63 @@
     <script src="{{ asset('plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
     <script>
         $(document).ready(function () {
+            // ==========================================
+// FAN NOMINI AVTOMATIK QIDIRISH (AUTOCOMPLETE)
+// ==========================================
+            let searchTimeout;
+
+            $('#name').on('input', function () {
+                clearTimeout(searchTimeout);
+                let query = $(this).val();
+                let suggestionsBox = $('#name-suggestions');
+                if (query.length < 2) {
+                    suggestionsBox.hide();
+                    return;
+                }
+                searchTimeout = setTimeout(function () {
+                    $.ajax({
+                        url: '{{ route("subjects.index") }}',
+                        type: 'GET',
+                        data: {q: query},
+                        success: function (data) {
+                            suggestionsBox.empty();
+                            if (data.length > 0) {
+                                data.forEach(function (subject) {
+                                    suggestionsBox.append(`
+                            <a href="#" class="list-group-item list-group-item-action py-2 suggestion-item text-primary">
+                                ${subject.name}
+                            </a>
+                        `);
+                                });
+                                suggestionsBox.show();
+                            } else {
+                                suggestionsBox.append(`
+                        <div class="list-group-item py-2 text-muted">
+                            Fayl topilmadi, siz yozgan nom bilan saqlanadi.
+                        </div>
+                    `);
+                                suggestionsBox.show();
+                            }
+                        },
+                        error: function () {
+                            suggestionsBox.hide();
+                        }
+                    });
+                }, 300);
+            });
+
+            $(document).on('click', '.suggestion-item', function (e) {
+                e.preventDefault();
+                let selectedName = $(this).text().trim();
+                $('#name').val(selectedName);
+                $('#name-suggestions').hide();
+            });
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('#name, #name-suggestions').length) {
+                    $('#name-suggestions').hide();
+                }
+            });
+
             $('#reservationdatetime').datetimepicker({
                 icons: {time: 'far fa-clock'},
                 format: 'DD.MM.YYYY',

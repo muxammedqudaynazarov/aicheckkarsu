@@ -12,6 +12,7 @@ use App\Http\Controllers\LessonController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\SpecialtyController;
+use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +36,7 @@ Route::prefix('home')->middleware(['auth'])->group(function () {
         Route::resource('curricula', CurriculumController::class)->only('index');
         Route::resource('specialties', SpecialtyController::class)->only('index');
         Route::resource('groups', GroupController::class)->only('index');
+        Route::resource('subjects', SubjectController::class)->only('index');
     });
     Route::resource('lessons', LessonController::class);
     Route::resource('results', ResultController::class);
