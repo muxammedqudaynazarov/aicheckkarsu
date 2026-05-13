@@ -116,6 +116,7 @@ class CheckLessonFiles implements ShouldQueue
                     Siz asosiy urg‘uni, etiborni {$this->lesson->name} faniga qarating, savollar shu fan bo‘yicha berilgan.
                     Agar talaba {$this->lesson->name} fanidan emas boshqa fandan yoki javob boshqa savolga tegishli bo‘sa, yozilgan javob uchun 0 ball qo‘ying, buni qat’iy nazoratga oling, talaba faqat {$this->lesson->name} fanidan va aynan shu savolga berilganligiga etibor bering va izohiga Talaba javob bermagan matnini yozib qo‘ying yoki izoh bermang.
                     Talaba: {$file->student->name}, ID: {$file->student->id}.
+                    Baholash natijasi maksimal 50 balldan oshmasligi kerak, har bir savolni baholash natijasi 10 balldan oshmasligi kerak va umumiy savollar soni 5 savoldan bo'ladi.
                     Natijani FAQATGINA quyidagi JSON formatida qaytaring, boshqa hech qanday izoh, markdown yoki matn qo'shmang:
                     {
                       \"status\": true,
