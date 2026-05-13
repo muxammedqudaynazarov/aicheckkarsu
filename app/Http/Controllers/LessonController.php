@@ -78,7 +78,7 @@ class LessonController extends Controller
         $request->validate([
             'group_id' => 'required|exists:groups,id',
             'name' => 'required|string|max:255',
-            'files.*' => 'nullable|file|mimes:pdf|max:102400',
+            'files.*' => 'nullable|file|mimes:pdf|max:15630',
         ]);
         $examDate = Carbon::createFromFormat('d.m.Y', $request->exam_date)->format('Y-m-d 12:00:00');
         $meta = session('student_meta');

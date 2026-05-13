@@ -9,7 +9,7 @@ class LanguageController extends Controller
 {
     public function models()
     {
-        $response = Http::get("https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSyCAxihtfRFOMZb4L7vrBkQ-ooofGEW0YIY");
+        $response = Http::get("https://generativelanguage.googleapis.com/v1beta/models?key=");
         if ($response->successful()) {
             $models = $response->json();
             foreach ($models['models'] as $model) {
