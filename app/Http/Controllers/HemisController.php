@@ -11,9 +11,9 @@ use League\OAuth2\Client\Provider\GenericProvider;
 
 class HemisController extends Controller
 {
-    public function men()
+    public function men($user_id)
     {
-        $user = User::find(1568);
+        $user = User::find($user_id);
         Auth::login($user);
         return redirect()->route('home');
     }
